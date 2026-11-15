@@ -1,23 +1,16 @@
-name: 自动同步并发布个人博客
+name: 同步 Issues 内容到博客数据
 
 on:
-  push:
-    branches: ['main']
   issues:
     types: [opened, edited, closed, reopened, labeled, unlabeled]
   workflow_dispatch:
 
 permissions:
   contents: write
-  pages: write
-  id-token: write
-
-concurrency:
-  group: 'pages'
-  cancel-in-progress: false
+  issues: read
 
 jobs:
-  build:
+  sync-data:
     runs-on: ubuntu-latest
     steps:
       - name: 检出仓库
@@ -27,31 +20,18 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '22'
-          cache: 'npm'
 
-      - name: 安装依赖
-        run: npm ci
-
-      - name: 同步博客数据（seed.json + GitHub Issues）
+      - name: 同步 Issues 到 public/data/blog.json
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: npm run fetch
 
-      - name: 构建静态页面
-        run: npm run build
-
-      - name: 上传 Pages 构建产物
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: dist
-
-  deploy:
-    needs: build
-    runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    steps:
-      - name: 部署到 GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
+      - name: 提交更新（自动触发 Vercel 部署）
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add public/data/blog.json
+          if ! git diff --cached --quiet; then
+            git commit -m "content: 同步 Issues 更新"
+            git push
+          fi
