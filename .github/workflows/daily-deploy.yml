@@ -1,11 +1,10 @@
-name: 每日抓取并发布静态网站
+name: 自动同步并发布个人博客
 
 on:
-  schedule:
-    # 北京时间每天 08:05 自动抓取一次（UTC 00:05）
-    - cron: '5 0 * * *'
   push:
     branches: ['main']
+  issues:
+    types: [opened, edited, closed, reopened, labeled, unlabeled]
   workflow_dispatch:
 
 permissions:
@@ -18,7 +17,7 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  fetch-and-build:
+  build:
     runs-on: ubuntu-latest
     steps:
       - name: 检出仓库
@@ -33,18 +32,10 @@ jobs:
       - name: 安装依赖
         run: npm ci
 
-      - name: 抓取最新数据
+      - name: 同步博客数据（seed.json + GitHub Issues）
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: npm run fetch
-
-      - name: 提交更新后的数据快照
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add public/data
-          if ! git diff --cached --quiet; then
-            git commit -m "data: 每日自动同步 $(TZ=Asia/Shanghai date +%Y-%m-%d)"
-            git push
-          fi
 
       - name: 构建静态页面
         run: npm run build
@@ -55,7 +46,7 @@ jobs:
           path: dist
 
   deploy:
-    needs: fetch-and-build
+    needs: build
     runs-on: ubuntu-latest
     environment:
       name: github-pages

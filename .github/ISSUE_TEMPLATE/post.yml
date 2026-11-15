@@ -1,0 +1,35 @@
+name: 📝 发布学习文章 / 笔记
+description: 写一篇新的学习笔记、技术总结或项目复盘（提交后自动同步到博客「学习」板块）
+title: ""
+labels: ["文章"]
+body:
+  - type: input
+    id: category
+    attributes:
+      label: 分类
+      description: 例如：大模型、后端学习、项目实践、学习总结
+      placeholder: "大模型"
+    validations:
+      required: false
+  - type: input
+    id: tags
+    attributes:
+      label: 标签（用逗号分隔）
+      placeholder: "LLM, Agent, Python"
+    validations:
+      required: false
+  - type: input
+    id: summary
+    attributes:
+      label: 一句话摘要（可选，不填会自动截取正文前几句）
+      placeholder: "记录最近学习与实践的核心收获…"
+    validations:
+      required: false
+  - type: textarea
+    id: content
+    attributes:
+      label: 正文内容（支持 Markdown，可直接粘贴图片）
+      placeholder: |
+        在这里写正文内容…
+    validations:
+      required: true

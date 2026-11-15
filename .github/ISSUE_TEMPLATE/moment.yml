@@ -1,0 +1,19 @@
+name: 💬 发布随笔 / 动态
+description: 记录几句话的想法、今日所学或生活日常（提交后自动同步到博客「随笔」板块）
+title: "随笔"
+labels: ["随笔"]
+body:
+  - type: input
+    id: tag
+    attributes:
+      label: 标签
+      placeholder: "学习日常 / 跑步 / 听歌 / 想法"
+    validations:
+      required: false
+  - type: textarea
+    id: content
+    attributes:
+      label: 内容（支持 Markdown 和直接粘贴图片）
+      placeholder: "今天学到了什么，或者有什么想法…"
+    validations:
+      required: true

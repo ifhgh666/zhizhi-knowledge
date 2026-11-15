@@ -1,254 +1,155 @@
 /**
- * 每日数据抓取：生成网站读取的静态 JSON（public/data/）。
- *
- * 由 GitHub Actions 每天定时运行，也可以本地手动跑：npm run fetch
- *
- * 数据源（都是公开页面 / 接口，无需密钥）：
- *  - 大模型榜单：https://hellogithub.com/report/lm-rank（页面内 __NEXT_DATA__ 里带结构化数据，
- *    支持 ?year=&month=&category= 参数）
- *  - V2EX 热议：https://www.v2ex.com/api/topics/hot.json
- *  - 开源月刊：https://hellogithub.com/rss
- *
- * 原则：
- *  - 只保存标题、摘要、榜单数字和原文链接，不搬运全文；去掉榜单里的推广链接。
- *  - 单个数据源失败不影响其它数据源；失败时保留旧数据，不写空文件。
- *  - 请求之间留间隔，对原站友好。
+ * 个人博客数据构建脚本：
+ *  1. 读取 content/seed.json 里的基础配置与初始内容（可在 GitHub 网页直接编辑）。
+ *  2. 拉取仓库主人（ifhgh666）在本仓库创建的 GitHub Issues：
+ *     - 标签含「文章」或「post」→ 自动加入「学习（文章）」板块
+ *     - 标签含「随笔」或「动态」或「moment」→ 自动加入「随笔」板块
+ *     - 标签含「推荐」或「收藏」或「recommend」→ 自动加入「推荐」板块
+ *  3. 生成前端直接读取的 public/data/blog.json。
  */
-import { mkdir, readFile, writeFile, readdir } from 'node:fs/promises'
+import { mkdir, readFile, writeFile, rm } from 'node:fs/promises'
 import { existsSync } from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
-const DATA = path.join(ROOT, 'public', 'data')
-const UA = 'Mozilla/5.0 (compatible; zhizhi-knowledge/1.0; +https://github.com/ifhgh666/zhizhi-knowledge)'
-const TIMEOUT = 20_000
+const SEED_FILE = path.join(ROOT, 'content', 'seed.json')
+const OUT_DIR = path.join(ROOT, 'public', 'data')
+const OUT_FILE = path.join(OUT_DIR, 'blog.json')
 
-const sleep = (ms) => new Promise((r) => setTimeout(r, ms))
+const OWNER = 'ifhgh666'
+const REPO = 'zhizhi-knowledge'
 
-async function fetchText(url) {
-  const res = await fetch(url, { headers: { 'User-Agent': UA }, signal: AbortSignal.timeout(TIMEOUT) })
-  if (!res.ok) throw new Error(`HTTP ${res.status}：${url}`)
-  return res.text()
-}
-
-async function readJson(file, fallback = null) {
-  try { return JSON.parse(await readFile(file, 'utf8')) } catch { return fallback }
-}
-
-async function writeJson(file, data) {
-  await mkdir(path.dirname(file), { recursive: true })
-  await writeFile(file, `${JSON.stringify(data, null, 2)}\n`, 'utf8')
-}
-
-/** 北京时间的日期（网站面向国内读者；Actions 服务器在 UTC 时区）。 */
-function beijingDate(d = new Date()) {
-  return new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Shanghai' }).format(d)
-}
-
-const pad = (n) => String(n).padStart(2, '0')
-
-/* ------------------------------------------------------------------ *
- * 大模型榜单
- * ------------------------------------------------------------------ */
-
-const RANK_BASE = 'https://hellogithub.com/report/lm-rank'
-
-function parseNextData(html) {
-  const m = html.match(/<script id="__NEXT_DATA__" type="application\/json">([\s\S]*?)<\/script>/)
-  if (!m) throw new Error('页面里没有找到 __NEXT_DATA__（页面结构可能变了）')
-  return JSON.parse(m[1]).props?.pageProps ?? {}
-}
-
-/** 只保留展示需要的字段；推广链接（model_url_* / providers / ofox_*）一律丢弃。 */
-function cleanModel(m) {
-  const num = (v) => (typeof v === 'number' && Number.isFinite(v) ? v : null)
-  return {
-    position: num(m.position),
-    name: String(m.name ?? '').trim(),
-    organization: String(m.organization ?? '').trim(),
-    license: String(m.license ?? '').trim(),
-    rating: num(m.rating) === null ? null : Math.round(m.rating * 10) / 10,
-    votes: num(m.votes),
-    change: num(m.change), // 正数=上升，负数=下降，null=新上榜
-    inputPrice: num(m.input_price),
-    outputPrice: num(m.output_price),
-    priceUnit: m.price_unit ?? null,
+/** 解析 GitHub Issue 表单模板生成的 `### 字段名 \n\n 内容` 结构 */
+function parseIssueSections(body) {
+  const text = String(body ?? '').replace(/\r\n/g, '\n').trim()
+  if (!text.startsWith('### ')) {
+    return { _raw: text }
   }
-}
-
-async function fetchRankPage(params = {}) {
-  const qs = new URLSearchParams(params).toString()
-  const html = await fetchText(`${RANK_BASE}${qs ? `?${qs}` : ''}`)
-  return parseNextData(html)
-}
-
-async function updateRank() {
-  const dir = path.join(DATA, 'lm-rank')
-  const head = await fetchRankPage()
-  const year = head.year
-  const categories = Array.isArray(head.categoryList) && head.categoryList.length ? head.categoryList : ['text']
-  const months = (Array.isArray(head.monthList) ? head.monthList : [head.month]).filter(Boolean)
-  if (!year || !months.length) throw new Error('榜单页面没有年份 / 月份信息')
-
-  const current = `${year}-${pad(head.month)}`
-  const written = []
-  for (const month of months) {
-    const key = `${year}-${pad(month)}`
-    const file = path.join(dir, `${key}.json`)
-    // 历史月份只抓一次；当月每天刷新（月内数据会变）
-    if (key !== current && existsSync(file)) continue
-
-    const out = { month: key, source: RANK_BASE, fetchedAt: new Date().toISOString(), categories: {} }
-    for (const cat of categories) {
-      try {
-        const p = (key === current && cat === head.category)
-          ? head
-          : await fetchRankPage({ year, month, category: cat })
-        // 防御：请求了某月却返回了别的月（参数失效）时，不要写错数据
-        if (p.year !== year || p.month !== month || p.category !== cat) {
-          console.warn(`  [榜单] ${key} ${cat}：返回的是 ${p.year}-${p.month} ${p.category}，跳过`)
-          continue
-        }
-        out.categories[cat] = (p.list ?? []).map(cleanModel).filter((m) => m.name)
-      } catch (err) {
-        console.warn(`  [榜单] ${key} ${cat} 失败：${err.message}`)
-      }
-      await sleep(400)
-    }
-    if (Object.keys(out.categories).length) {
-      await writeJson(file, out)
-      written.push(key)
-    }
+  const map = { _raw: text }
+  const blocks = text.split(/\n(?=###\s+)/)
+  for (const b of blocks) {
+    const m = b.match(/^###\s+([^\n]+)\n+([\s\S]*)$/)
+    if (!m) continue
+    const key = m[1].trim()
+    const val = m[2].trim()
+    map[key] = val === '_No response_' ? '' : val
   }
-  console.log(`✓ 大模型榜单：更新 ${written.length} 个月份（${written.join('、') || '无'}），分类 ${categories.join(' / ')}`)
-  return { categories, current }
+  return map
 }
 
-/* ------------------------------------------------------------------ *
- * V2EX 热议
- * ------------------------------------------------------------------ */
-
-function plainExcerpt(text, max = 140) {
-  const s = String(text ?? '')
-    .replace(/!\[[^\]]*\]\([^)]*\)/g, '') // markdown 图片
-    .replace(/\[([^\]]*)\]\([^)]*\)/g, '$1') // markdown 链接
-    .replace(/<[^>]+>/g, '')
-    .replace(/https?:\/\/\S+/g, '')
-    .replace(/[#>*`_~-]{2,}/g, ' ')
+function makeExcerpt(md, max = 90) {
+  const s = String(md ?? '')
+    .replace(/```[\s\S]*?```/g, '')
+    .replace(/!\[[^\]]*\]\([^)]*\)/g, '')
+    .replace(/\[([^\]]*)\]\([^)]*\)/g, '$1')
+    .replace(/[#>*`~_-]+/g, ' ')
     .replace(/\s+/g, ' ')
     .trim()
   return s.length > max ? `${s.slice(0, max)}…` : s
 }
 
-async function updateV2ex() {
-  const raw = JSON.parse(await fetchText('https://www.v2ex.com/api/topics/hot.json'))
-  if (!Array.isArray(raw) || !raw.length) throw new Error('V2EX 返回为空')
-  const date = beijingDate()
-  const items = raw.map((t) => ({
-    id: t.id,
-    title: String(t.title ?? '').trim(),
-    url: t.url ?? `https://www.v2ex.com/t/${t.id}`,
-    replies: t.replies ?? 0,
-    node: t.node?.title ?? '',
-    nodeUrl: t.node?.url ?? '',
-    author: t.member?.username ?? '',
-    created: t.created ? new Date(t.created * 1000).toISOString() : null,
-    excerpt: plainExcerpt(t.content),
-  }))
-  await writeJson(path.join(DATA, 'v2ex', `${date}.json`), {
-    date, source: 'https://www.v2ex.com/?tab=hot', fetchedAt: new Date().toISOString(), items,
-  })
-  console.log(`✓ V2EX 热议：${date} 共 ${items.length} 条`)
-}
-
-/* ------------------------------------------------------------------ *
- * HelloGitHub 开源月刊（RSS）
- * ------------------------------------------------------------------ */
-
-function decodeXml(s) {
-  return String(s ?? '')
-    .replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g, '$1')
-    .replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"')
-    .replace(/&#39;/g, "'").replace(/&amp;/g, '&')
-    .trim()
-}
-
-const tag = (xml, name) => decodeXml(xml.match(new RegExp(`<${name}[^>]*>([\\s\\S]*?)</${name}>`))?.[1])
-
-async function updatePeriodical() {
-  const xml = await fetchText('https://hellogithub.com/rss')
-  const items = [...xml.matchAll(/<item>([\s\S]*?)<\/item>/g)].map(([, it]) => {
-    const title = tag(it, 'title')
-    const desc = tag(it, 'description')
-    const volume = Number(title.match(/第\s*(\d+)\s*期/)?.[1] ?? 0) || null
-    const total = Number(desc.match(/共有\s*(\d+)\s*个项目/)?.[1] ?? 0) || null
-    // "C 项目 (3)，Go 项目 (4)，人工智能 (5)" → [{name, count}]
-    const cats = [...desc.replace(/^.*?包含/, '').matchAll(/([^，,()]+?)\s*\((\d+)\)/g)]
-      .map(([, name, n]) => ({ name: name.trim(), count: Number(n) }))
-    const pub = tag(it, 'pubDate')
-    return {
-      volume,
-      title,
-      url: tag(it, 'link'),
-      total,
-      categories: cats,
-      publishedAt: pub ? new Date(pub).toISOString() : null,
-    }
-  }).filter((x) => x.title && x.url)
-
-  if (!items.length) throw new Error('RSS 里没有解析到任何一期')
-  items.sort((a, b) => (b.volume ?? 0) - (a.volume ?? 0))
-  await writeJson(path.join(DATA, 'periodical.json'), {
-    source: 'https://hellogithub.com/periodical', fetchedAt: new Date().toISOString(), items,
-  })
-  console.log(`✓ 开源月刊：共 ${items.length} 期（最新第 ${items[0].volume} 期）`)
-}
-
-/* ------------------------------------------------------------------ *
- * 汇总索引：前端先读这个文件，知道有哪些日期 / 月份可翻
- * ------------------------------------------------------------------ */
-
-async function listJson(dir, re) {
-  if (!existsSync(dir)) return []
-  return (await readdir(dir)).filter((f) => re.test(f)).map((f) => f.replace(/\.json$/, '')).sort().reverse()
-}
-
-async function writeIndex(rankInfo) {
-  const prev = await readJson(path.join(DATA, 'index.json'), {})
-  const index = {
-    site: '知知知识又又又增加了',
-    updatedAt: new Date().toISOString(),
-    rank: {
-      months: await listJson(path.join(DATA, 'lm-rank'), /^\d{4}-\d{2}\.json$/),
-      categories: rankInfo?.categories ?? prev.rank?.categories ?? ['text'],
-    },
-    v2ex: { dates: await listJson(path.join(DATA, 'v2ex'), /^\d{4}-\d{2}-\d{2}\.json$/) },
+async function fetchOwnerIssues() {
+  const url = `https://api.github.com/repos/${OWNER}/${REPO}/issues?creator=${OWNER}&state=open&per_page=100`
+  const headers = {
+    'User-Agent': 'if-personal-blog/1.0',
+    Accept: 'application/vnd.github+json',
   }
-  await writeJson(path.join(DATA, 'index.json'), index)
-  console.log(`✓ 索引：榜单 ${index.rank.months.length} 个月 / V2EX ${index.v2ex.dates.length} 天`)
-}
-
-/* ------------------------------------------------------------------ */
-
-const tasks = [
-  ['大模型榜单', updateRank],
-  ['V2EX 热议', updateV2ex],
-  ['开源月刊', updatePeriodical],
-]
-
-let rankInfo = null
-let failed = 0
-for (const [name, fn] of tasks) {
+  if (process.env.GITHUB_TOKEN) {
+    headers.Authorization = `Bearer ${process.env.GITHUB_TOKEN}`
+  }
   try {
-    const r = await fn()
-    if (fn === updateRank) rankInfo = r
+    const res = await fetch(url, { headers, signal: AbortSignal.timeout(15_000) })
+    if (!res.ok) {
+      console.warn(`[issues]跳过同步（HTTP ${res.status}）`)
+      return []
+    }
+    const items = await res.json()
+    return (Array.isArray(items) ? items : []).filter(
+      (it) => !it.pull_request && it.user?.login?.toLowerCase() === OWNER.toLowerCase(),
+    )
   } catch (err) {
-    failed += 1
-    console.error(`✗ ${name} 抓取失败（保留旧数据）：${err.message}`)
+    console.warn(`[issues] 网络请求失败，使用本地 seed.json：${err.message}`)
+    return []
   }
 }
-await writeIndex(rankInfo)
 
-// 全部失败才算失败（让 Actions 标红提醒）；部分失败照常发布旧数据
-if (failed === tasks.length) process.exit(1)
+const seed = JSON.parse(await readFile(SEED_FILE, 'utf8'))
+const issues = await fetchOwnerIssues()
+
+const issuePosts = []
+const issueMoments = []
+const issueRecommends = []
+
+for (const it of issues) {
+  const labels = (it.labels ?? []).map((l) => (typeof l === 'string' ? l : l.name ?? '').toLowerCase())
+  const sec = parseIssueSections(it.body)
+  const date = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Shanghai' }).format(new Date(it.created_at))
+
+  if (labels.some((l) => ['随笔', '动态', 'moment'].includes(l))) {
+    const content = sec['内容（支持 Markdown 和直接粘贴图片）'] ?? sec._raw
+    const tag = sec['标签'] || '日常随想'
+    if (content) {
+      issueMoments.push({
+        id: `issue-${it.number}`,
+        issueUrl: it.html_url,
+        date,
+        tag,
+        content,
+      })
+    }
+  } else if (labels.some((l) => ['推荐', '收藏', 'recommend'].includes(l))) {
+    const url = sec['链接地址'] || ''
+    const category = sec['分类'] || '好物推荐'
+    const summary = sec['推荐理由 / 简介'] || makeExcerpt(sec._raw, 100)
+    if (url) {
+      issueRecommends.push({
+        id: `issue-${it.number}`,
+        title: it.title.trim(),
+        category,
+        url,
+        summary,
+        featured: true,
+      })
+    }
+  } else {
+    // 默认归为「文章 / 学习笔记」
+    const category = sec['分类'] || '学习笔记'
+    const rawTags = sec['标签（用逗号分隔）'] || ''
+    const tags = rawTags
+      .split(/[,，]/)
+      .map((s) => s.trim())
+      .filter(Boolean)
+    const content = sec['正文内容（支持 Markdown，可直接粘贴图片）'] ?? sec._raw
+    const summary = sec['一句话摘要（可选，不填会自动截取正文前几句）'] || makeExcerpt(content, 85)
+    issuePosts.push({
+      id: `issue-${it.number}`,
+      issueUrl: it.html_url,
+      title: it.title.trim(),
+      summary,
+      category,
+      tags: tags.length ? tags : [category],
+      date,
+      content,
+    })
+  }
+}
+
+const blog = {
+  updatedAt: new Date().toISOString(),
+  profile: seed.profile,
+  projects: seed.projects ?? [],
+  posts: [...issuePosts, ...(seed.posts ?? [])],
+  moments: [...issueMoments, ...(seed.moments ?? [])],
+  recommends: [...issueRecommends, ...(seed.recommends ?? [])],
+}
+
+// 清理之前旧站遗留的 index.json
+const oldIndex = path.join(OUT_DIR, 'index.json')
+if (existsSync(oldIndex)) await rm(oldIndex, { force: true })
+
+await mkdir(OUT_DIR, { recursive: true })
+await writeFile(OUT_FILE, `${JSON.stringify(blog, null, 2)}\n`, 'utf8')
+console.log(
+  `✓ 博客数据已生成：项目 ${blog.projects.length} 个 / 文章 ${blog.posts.length} 篇 / 随笔 ${blog.moments.length} 条 / 推荐 ${blog.recommends.length} 个（其中来自 Issues：${issues.length} 条）`,
+)

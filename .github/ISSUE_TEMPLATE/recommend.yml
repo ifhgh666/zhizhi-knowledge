@@ -1,0 +1,26 @@
+name: 🔖 添加推荐 / 书签
+description: 收藏一个值得看的好项目、好文章或实用工具（提交后自动同步到博客「推荐」板块）
+title: ""
+labels: ["推荐"]
+body:
+  - type: input
+    id: url
+    attributes:
+      label: 链接地址
+      placeholder: "https://github.com/..."
+    validations:
+      required: true
+  - type: input
+    id: category
+    attributes:
+      label: 分类
+      placeholder: "大模型 / 后端 / 实用工具"
+    validations:
+      required: false
+  - type: textarea
+    id: summary
+    attributes:
+      label: 推荐理由 / 简介
+      placeholder: "一句话说说为什么值得收藏…"
+    validations:
+      required: true

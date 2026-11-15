@@ -1,0 +1,195 @@
+{
+  "profile": {
+    "name": "if",
+    "blogTitle": "if 的个人博客",
+    "headline": "你好，我是 if",
+    "bioLines": [
+      "一名正在学习后端与大模型的开发者，对探索新技术始终抱有热情，",
+      "在这里记录我的项目实践、学习笔记与日常随想。"
+    ],
+    "aboutParagraphs": [
+      "你好，我是 if。目前正在系统学习后端开发与大模型（LLM / Agent / RAG）方向，喜欢边学边动手，把新学到的技术做成能跑起来的小项目。",
+      "对于学习我一直抱有很高的热情，看到有意思的新技术、新工具就想折腾试试。平时刚认识的时候可能会有一点内敛，但熟悉之后就会很热情。",
+      "不敲代码的时候，喜欢出去跑跑步放空大脑，或者戴上耳机听听歌、和朋友打打游戏。"
+    ],
+    "github": "https://github.com/ifhgh666",
+    "repo": "ifhgh666/zhizhi-knowledge",
+    "hobbies": [
+      { "icon": "🏃", "name": "跑步", "desc": "出门跑几公里，换换脑子也保持精力" },
+      { "icon": "🎵", "name": "听歌", "desc": "写代码和跑步时都少不了歌单陪伴" },
+      { "icon": "🎮", "name": "打游戏", "desc": "闲暇时放松心情、和朋友一起开黑" },
+      { "icon": "💡", "name": "学新技术", "desc": "对新工具与新技术充满好奇，喜欢动手试" }
+    ],
+    "learningTracks": [
+      {
+        "id": "llm",
+        "icon": "layers",
+        "title": "大模型与 Agent",
+        "desc": "深入学习 Prompt、RAG 检索增强与智能体（Agent）工作流实践。"
+      },
+      {
+        "id": "backend",
+        "icon": "database",
+        "title": "后端开发",
+        "desc": "系统学习服务端开发、接口设计、数据存储与工程化基础。"
+      },
+      {
+        "id": "explore",
+        "icon": "atom",
+        "title": "项目与新技术",
+        "desc": "保持对新技术的热情，通过一个个动手小项目巩固所学。"
+      }
+    ]
+  },
+  "projects": [
+    {
+      "id": "agentic-rag",
+      "title": "Agentic RAG 知识检索",
+      "description": "结合智能体决策与 RAG 检索增强的知识库问答实践，探索多步检索、上下文重排与回答生成。",
+      "tags": ["Python", "RAG", "Agent"],
+      "url": "https://github.com/ifhgh666/agentic-rag",
+      "featured": true,
+      "coverKind": "window",
+      "category": "大模型"
+    },
+    {
+      "id": "learning-record-app",
+      "title": "个人学习记录本",
+      "description": "一个轻量的本地学习记录工具，支持按日分块记笔记、标签检索与 AI 辅助对话，帮助沉淀日常所学。",
+      "tags": ["Node.js", "Hono", "Vue 3"],
+      "url": "https://github.com/ifhgh666/learning-record-app",
+      "featured": true,
+      "coverKind": "checklist",
+      "category": "后端与全栈"
+    },
+    {
+      "id": "llm-agent-learning",
+      "title": "LLM Agent 学习与实践",
+      "description": "系统整理大模型与智能体开发的学习代码、工具调用（Tool Calling）与多步推理实验记录。",
+      "tags": ["Python", "LLM", "Agent"],
+      "url": "https://github.com/ifhgh666/llm-agent-learning",
+      "featured": false,
+      "coverKind": "window",
+      "category": "大模型"
+    },
+    {
+      "id": "claude-skills-zh",
+      "title": "Agent Skills 中文学习整理",
+      "description": "整理与学习智能体技能（Skills）的设计模式与复用法，方便在日常开发工作流中直接参考。",
+      "tags": ["Python", "Agent Skills", "Prompt"],
+      "url": "https://github.com/ifhgh666/Claude_skills_zh-CN",
+      "featured": false,
+      "coverKind": "checklist",
+      "category": "大模型"
+    },
+    {
+      "id": "aichat",
+      "title": "轻量 AI 对话实践",
+      "description": "对接大模型流式接口（SSE）的对话练习项目，理解消息上下文管理与前后端流式通信。",
+      "tags": ["JavaScript", "SSE", "API"],
+      "url": "https://github.com/ifhgh666/aichat",
+      "featured": false,
+      "coverKind": "window",
+      "category": "后端与全栈"
+    },
+    {
+      "id": "video-download",
+      "title": "多平台视频下载助手",
+      "description": "平时动手写的一个实用小工具，用于解析与下载常见平台的视频素材。",
+      "tags": ["JavaScript", "工具脚本"],
+      "url": "https://github.com/ifhgh666/video-dowmload",
+      "featured": false,
+      "coverKind": "checklist",
+      "category": "实用工具"
+    }
+  ],
+  "posts": [
+    {
+      "id": "rag-and-agent-notes",
+      "title": "从传统 RAG 到 Agentic RAG：我的学习与实践笔记",
+      "summary": "梳理从固定流程的检索增强（Naive RAG）到由智能体自主决定何时检索、怎么改写查询的实践体会。",
+      "category": "大模型",
+      "tags": ["RAG", "Agent", "Python"],
+      "date": "2026-11-12",
+      "content": "## 为什么需要 Agentic RAG\n\n刚开始接触 RAG（检索增强生成）时，最常见的流程是固定的三步：**用户提问 → 向量检索 Top-K 片段 → 拼进 Prompt 让大模型回答**。\n\n但在实际动手做 `agentic-rag` 项目时很快遇到几个问题：\n\n1. **用户的问题往往不够直接**：有时候一句话里包含两个子问题，直接拿原话做向量检索，召回的片段往往顾此失彼。\n2. **并不是每次都需要检索**：闲聊或简单追问如果也强制走一遍检索，既慢又容易引入无关噪声。\n3. **第一次检索没找对怎么办**：固定流水线没法「看一眼结果发现不对，换个关键词再搜一次」。\n\n## 把检索变成 Agent 的工具\n\n切到 Agentic 的思路后，核心变化是把「检索」封装成模型可以自主调用的 Tool：\n\n```python\n# 伪代码示例：让 Agent 自主决定查询改写与多轮检索\nwhile step < max_steps:\n    action = llm.decide(messages, tools=[search_kb, finish])\n    if action.name == 'finish':\n        return action.answer\n    obs = search_kb(query=action.args['query'])\n    messages.append(obs)\n```\n\n这样模型可以先拆解问题，检索第一轮后评估上下文是否充足，不够就换关键词补充检索，最后再汇总回答。\n\n## 小结\n\n边学边写代码最大的感受是：概念看十遍不如自己把最小可用版本跑通一遍。下一步打算继续完善重排序（Rerank）和接口层的工程化封装。"
+    },
+    {
+      "id": "backend-api-and-sse",
+      "title": "后端学习笔记：REST 接口设计与大模型流式输出（SSE）",
+      "summary": "整理在写后端服务与对接大模型接口时，关于路由分层、错误处理以及 Server-Sent Events 流式响应的要点。",
+      "category": "后端学习",
+      "tags": ["后端", "Node.js", "SSE"],
+      "date": "2026-10-28",
+      "content": "## 接口设计保持简单直观\n\n在写个人项目后端时，我越来越喜欢轻量直接的服务端结构：\n\n- **路由只管协议层**：校验参数、调用业务函数、统一返回状态码。\n- **存储与外部调用独立封装**：文件读写、数据库查询或第三方 API 请求单独成模块，方便单独写测试。\n\n## 为什么大模型对话常用 SSE\n\n大模型生成完整回复往往要好几秒，如果等全部生成完再一次性返回 JSON，页面会像卡住一样。用 `Server-Sent Events (SSE)` 可以边生成边往前端推：\n\n```javascript\n// 服务端设置流式响应头\nnew Response(upstream.body, {\n  headers: {\n    'Content-Type': 'text/event-stream; charset=utf-8',\n    'Cache-Control': 'no-cache, no-transform',\n    Connection: 'keep-alive',\n  },\n})\n```\n\n前端用 `ReadableStream` 按行解析 `data:` 帧，就能做出顺滑的逐字输出效果。把基础网络协议和大模型应用结合起来学，很多知识点一下就串起来了。"
+    },
+    {
+      "id": "build-personal-blog",
+      "title": "搭建我的个人博客：用来记录项目、学习与成长",
+      "summary": "记录为什么要把个人博客搭起来，以及用 GitHub Issues 当写作后台、自动构建部署的极简方案。",
+      "category": "学习总结",
+      "tags": ["个人博客", "GitHub Pages"],
+      "date": "2026-10-15",
+      "content": "## 为什么要做一个自己的博客\n\n平时学后端和大模型的时候，写了不少零散的代码片段和想法。放在本地文件夹里时间久了容易积灰，做成公开的个人博客有几个好处：\n\n1. **倒逼自己把问题讲清楚**：自己觉得懂了，和能写成清晰的文字让别人看懂，中间差着好几层思考。\n2. **把做过的项目集中展示**：每学完一块技术就产出一个能看的仓库，慢慢积累自己的作品集。\n3. **发内容毫无负担**：直接用 GitHub Issues 当后台，在网页上点一下 `New Issue` 就能写文章、发几句话的日常随笔，或者收藏好用的开源项目，GitHub Actions 会自动同步到网站上。"
+    }
+  ],
+  "moments": [
+    {
+      "id": "m-1",
+      "date": "2026-11-15",
+      "tag": "学习日常",
+      "content": "把个人博客重新整理上线了！以后学后端和大模型的笔记、做的小项目还有平时的碎碎念都记在这里。"
+    },
+    {
+      "id": "m-2",
+      "date": "2026-11-11",
+      "tag": "大模型",
+      "content": "最近在调 Agentic RAG 的检索改写逻辑，发现把复杂问题拆成 2 个子查询再合并上下文，回答准确率比直接硬搜高不少。"
+    },
+    {
+      "id": "m-3",
+      "date": "2026-11-06",
+      "tag": "跑步 · 听歌",
+      "content": "傍晚戴着耳机出去跑了 5 公里，吹吹晚风听听歌，白天卡住的一段后端接口逻辑突然就想通了。"
+    },
+    {
+      "id": "m-4",
+      "date": "2026-10-30",
+      "tag": "想法",
+      "content": "学新技术最好的办法还是直接动手写个小玩具，哪怕一开始代码粗糙一点，跑通的那一刻最有成就感。"
+    }
+  ],
+  "recommends": [
+    {
+      "id": "rec-prompt-eng",
+      "title": "Prompt Engineering Guide",
+      "category": "大模型",
+      "url": "https://www.promptingguide.ai/zh",
+      "summary": "非常系统的提示词工程与 Agent / RAG 入门指南，包含大量直观的示例与论文梳理，值得常翻。",
+      "featured": true
+    },
+    {
+      "id": "rec-roadmap",
+      "title": "Developer Roadmaps (roadmap.sh)",
+      "category": "后端",
+      "url": "https://roadmap.sh/backend",
+      "summary": "清晰的后端与 AI 工程师学习路线图，不知道下一步学什么或者查漏补缺时看一眼很有帮助。",
+      "featured": false
+    },
+    {
+      "id": "rec-llama-cookbook",
+      "title": "anthropic-cookbook",
+      "category": "大模型",
+      "url": "https://github.com/anthropics/anthropic-cookbook",
+      "summary": "直接可运行的大模型工具调用、RAG、多模态与 Agent 代码示例合集，工程参考价值很高。",
+      "featured": false
+    },
+    {
+      "id": "rec-system-design",
+      "title": "system-design-primer",
+      "category": "后端",
+      "url": "https://github.com/donnemartin/system-design-primer",
+      "summary": "经典的后端系统设计入门仓库，涵盖缓存、数据库扩展、异步队列与高并发基础概念。",
+      "featured": false
+    }
+  ]
+}

@@ -1,62 +1,67 @@
-const cache = new Map()
+let cachedPromise = null
 
-async function fetchJson(relPath) {
-  if (cache.has(relPath)) return cache.get(relPath)
-  const p = fetch(`./data/${relPath}`).then(async (res) => {
-    if (!res.ok) throw new Error(`读取数据失败 (${res.status})：${relPath}`)
-    return res.json()
-  })
-  cache.set(relPath, p)
-  try {
-    return await p
-  } catch (err) {
-    cache.delete(relPath)
-    throw err
+export async function loadBlog() {
+  if (!cachedPromise) {
+    cachedPromise = fetch('./data/blog.json').then(async (res) => {
+      if (!res.ok) throw new Error(`读取博客数据失败 (${res.status})`)
+      return res.json()
+    })
   }
+  return cachedPromise
 }
 
-export const RANK_CATEGORY_LABEL = {
-  text: '文本模型',
-  webdev: '编程与 Web',
-  vision: '多模态视觉',
-  'text-to-image': '文生图',
-  'text-to-video': '文生视频',
-}
+/** 轻量 Markdown 渲染（支持 ## 标题、代码块、行内代码、加粗、列表、链接、图片与段落） */
+export function renderMarkdown(md) {
+  const esc = (s) =>
+    String(s ?? '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
 
-export function categoryLabel(key) {
-  return RANK_CATEGORY_LABEL[key] ?? key
-}
+  const codeBlocks = []
+  let text = String(md ?? '').replace(/\r\n/g, '\n')
 
-export const dataApi = {
-  index: () => fetchJson('index.json'),
-  rankMonth: (month) => fetchJson(`lm-rank/${month}.json`),
-  v2exDay: (date) => fetchJson(`v2ex/${date}.json`),
-  periodical: () => fetchJson('periodical.json'),
-}
-
-export function formatTime(iso) {
-  if (!iso) return '—'
-  const d = new Date(iso)
-  if (Number.isNaN(d.getTime())) return String(iso)
-  return d.toLocaleString('zh-CN', {
-    timeZone: 'Asia/Shanghai',
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit',
+  text = text.replace(/```([a-zA-Z0-9_-]*)\n([\s\S]*?)```/g, (_, lang, code) => {
+    const idx = codeBlocks.length
+    codeBlocks.push(
+      `<pre class="md-pre"><code class="md-code" data-lang="${esc(lang)}">${esc(code.trimEnd())}</code></pre>`,
+    )
+    return `\n@@CODE_${idx}@@\n`
   })
+
+  const inline = (line) =>
+    esc(line)
+      .replace(/!\[([^\]]*)\]\((https?:\/\/[^\s)]+)\)/g, '<img class="md-img" src="$2" alt="$1" loading="lazy" />')
+      .replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g, '<a href="$2" target="_blank" rel="noreferrer">$1</a>')
+      .replace(/`([^`]+)`/g, '<code class="md-inline-code">$1</code>')
+      .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+
+  const blocks = text.split(/\n{2,}/)
+  const html = blocks.map((raw) => {
+    const b = raw.trim()
+    if (!b) return ''
+    const codeMatch = b.match(/^@@CODE_(\d+)@@$/)
+    if (codeMatch) return codeBlocks[Number(codeMatch[1])]
+    if (b.startsWith('### ')) return `<h3>${inline(b.slice(4))}</h3>`
+    if (b.startsWith('## ')) return `<h2>${inline(b.slice(3))}</h2>`
+    if (b.startsWith('# ')) return `<h1>${inline(b.slice(2))}</h1>`
+
+    const lines = b.split('\n')
+    if (lines.every((l) => /^(\d+\.|-|\*)\s+/.test(l.trim()))) {
+      const isOl = /^\d+\.\s+/.test(lines[0].trim())
+      const tag = isOl ? 'ol' : 'ul'
+      const lis = lines
+        .map((l) => `<li>${inline(l.trim().replace(/^(\d+\.|-|\*)\s+/, ''))}</li>`)
+        .join('')
+      return `<${tag}>${lis}</${tag}>`
+    }
+    return `<p>${lines.map(inline).join('<br/>')}</p>`
+  })
+
+  return html.join('\n')
 }
 
-export function formatDateOnly(iso) {
-  if (!iso) return '—'
-  const d = new Date(iso)
-  if (Number.isNaN(d.getTime())) return String(iso).slice(0, 10)
-  return new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Shanghai' }).format(d)
-}
-
-export function formatMonthLabel(ym) {
-  const [y, m] = String(ym).split('-')
-  if (!y || !m) return ym
-  return `${y} 年 ${Number(m)} 月`
+export function issueNewUrl(repo, template) {
+  const r = repo || 'ifhgh666/zhizhi-knowledge'
+  return `https://github.com/${r}/issues/new?template=${encodeURIComponent(template)}`
 }
