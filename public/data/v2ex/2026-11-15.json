@@ -1,0 +1,117 @@
+{
+  "date": "2026-11-15",
+  "source": "https://www.v2ex.com/?tab=hot",
+  "fetchedAt": "2026-11-15T06:35:06.817Z",
+  "items": [
+    {
+      "id": 1257128,
+      "title": "关于设置中目前提供的 6 种楼中楼样式的 Demo",
+      "url": "https://www.v2ex.com/t/1257128",
+      "replies": 58,
+      "node": "Wunder",
+      "nodeUrl": "https://www.v2ex.com/go/wunder",
+      "author": "Livid",
+      "created": "2026-11-14T15:56:02.000Z",
+      "excerpt": "新的设置选项可以在这里找到： 六种样式的 Demo 引用条 角标 + 悬浮预览 楼中楼 树形缩进 对话连线 引用楼层"
+    },
+    {
+      "id": 1257146,
+      "title": "如果给计算机基础教材列一个「五大经典」，你会选哪几本",
+      "url": "https://www.v2ex.com/t/1257146",
+      "replies": 30,
+      "node": "计算机",
+      "nodeUrl": "https://www.v2ex.com/go/computers",
+      "author": "GoogolChrome111",
+      "created": "2026-11-15T00:21:57.000Z",
+      "excerpt": "最近在整理计算机基础方面的阅读书单，想到能不能按五个方向，各选一本有代表性的经典教材： 计算机系统：《深入理解计算机系统》（CSAPP） 计算机网络：《计算机网络：自顶向下方法》 操作系统：《操作系统导论》（OSTEP） 编译原理：《编译原理》（Dragon Book） 数据库：…"
+    },
+    {
+      "id": 1257073,
+      "title": "有没有 V 友自己搭建过云手机？想实现网页远程操作，不想再用第三方云手机了",
+      "url": "https://www.v2ex.com/t/1257073",
+      "replies": 27,
+      "node": "Android",
+      "nodeUrl": "https://www.v2ex.com/go/android",
+      "author": "ccai",
+      "created": "2026-11-14T10:13:39.000Z",
+      "excerpt": "想问一下，有没有 V 友尝试过自己用服务器搭建开源项目的云手机？ 比如在自己的服务器上部署云手机环境，然后通过网页端远程访问和操作，平时用来刷视频、玩游戏，测试 app 等等。 如果整个环境都部署在自己的服务器上，数据和操作也由自己掌控，理论上隐私和安全性也会更有保障。 不知道有…"
+    },
+    {
+      "id": 1257109,
+      "title": "求助: 想在寝室搞一个小主机 有推荐么?",
+      "url": "https://www.v2ex.com/t/1257109",
+      "replies": 26,
+      "node": "问与答",
+      "nodeUrl": "https://www.v2ex.com/go/qna",
+      "author": "xukuangdi465",
+      "created": "2026-11-14T14:03:54.000Z",
+      "excerpt": "目前只有一台 8845H 的笔记本 + iPad air(有点想把 pad 出掉... 记笔记屏幕滑的一 看书不如手机随时随地又小巧 拿着舒服) 预算 4000 左右 用途 - 挂 agent 跑任务(主要是翻译一些文档 搜集一些资料 完成一些重复小任务 小机器人监控一些任务 有…"
+    },
+    {
+      "id": 1257076,
+      "title": "我自己开发了一个远程控制软件 Airhand 欢迎 star~ 支持 120fps",
+      "url": "https://www.v2ex.com/t/1257076",
+      "replies": 25,
+      "node": "分享创造",
+      "nodeUrl": "https://www.v2ex.com/go/create",
+      "author": "sqlpxc",
+      "created": "2026-11-14T10:16:37.000Z",
+      "excerpt": "# airhand > 我是 airhand 的开发者，项目地址：，欢迎 Star ⭐ FAQ 为什么还要再做远程控制？为什么不用 RustDesk ？ 最开始的原因很简单：RustDesk 需要部署 `hbbs` 和 `hbbr`，开的端口太多了，我总觉得在服务端开很多端口不是…"
+    },
+    {
+      "id": 1257035,
+      "title": "纠结， Mac 有必要买 AC+么",
+      "url": "https://www.v2ex.com/t/1257035",
+      "replies": 23,
+      "node": "MacBook",
+      "nodeUrl": "https://www.v2ex.com/go/macbook",
+      "author": "syh2",
+      "created": "2026-11-14T06:38:14.000Z",
+      "excerpt": "600 多一年，感觉好像还好？ 还是说买 3 年。打算用久一点 以前旧的电脑经常带壳，结果散热又差，而且还会留印子 键盘膜和屏幕贴膜也感觉一定程度影响 最好还是直接裸奔，但是要非常爱惜，所以感觉好像买 care 还是有必要？ 各位群友买 apple care 么，毕竟是万把来块的…"
+    },
+    {
+      "id": 1257054,
+      "title": "AI 时代，程序员正在慢慢转向产品经理",
+      "url": "https://www.v2ex.com/t/1257054",
+      "replies": 21,
+      "node": "程序员",
+      "nodeUrl": "https://www.v2ex.com/go/programmer",
+      "author": "LeviMarvin",
+      "created": "2026-11-14T08:05:30.000Z",
+      "excerpt": "以前我也是个古法编程的坚定维护者，但随着 DeepSeek Flash 1017 模型的发布，尝试了一下，现在已经离不开 AI 编程了。 AI 可以自动完成：编码、验证、修复、重构一条龙，再也不需要自己去思考具体逻辑、代码漏洞等问题，最多只需要自己设计程序架构。（甚至也可以让 A…"
+    },
+    {
+      "id": 1257045,
+      "title": "分享一下 claude portal kyc 后用护照认证被封但又申诉成功的经历",
+      "url": "https://www.v2ex.com/t/1257045",
+      "replies": 18,
+      "node": "Claude",
+      "nodeUrl": "https://www.v2ex.com/go/claude",
+      "author": "serenader",
+      "created": "2026-11-14T07:26:59.000Z",
+      "excerpt": "时间线： - 12 号早上通过手机端的 paseo 给 claude opus 5.5 会话发消息时，执行到一半提示错误，给了 portal 链接去认证 - 当天稀里糊涂点进去，国家选择了中国，但没有继续拍照，想着先看网上有没有相关的经验 - 查了一下发现当天很多人都被 kyc …"
+    },
+    {
+      "id": 1257158,
+      "title": "打算购买 Claude Team 成品号，这种号的风险跟稳定性怎么样？",
+      "url": "https://www.v2ex.com/t/1257158",
+      "replies": 18,
+      "node": "Claude",
+      "nodeUrl": "https://www.v2ex.com/go/claude",
+      "author": "chirsxp",
+      "created": "2026-11-15T02:15:58.000Z",
+      "excerpt": "有在用的老师提供一些经验分享吗？ 只自己工作室内部使用。"
+    },
+    {
+      "id": 1257042,
+      "title": "Claude 代充跳 kyc 被封都是不退款的吗",
+      "url": "https://www.v2ex.com/t/1257042",
+      "replies": 17,
+      "node": "Claude",
+      "nodeUrl": "https://www.v2ex.com/go/claude",
+      "author": "Tory12138",
+      "created": "2026-11-14T07:02:58.000Z",
+      "excerpt": "有走代充的朋友吗，可以讲一下么"
+    }
+  ]
+}
